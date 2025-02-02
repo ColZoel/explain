@@ -35,3 +35,5 @@ def call_api(api_config, model, prompt, max_tokens, temperature):
     except Exception as e:
         print("Error calling aisuite API: " + str(e))
         sys.exit(1)
+
+

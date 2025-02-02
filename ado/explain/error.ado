@@ -36,7 +36,8 @@ program define explain_error
         import sys
         import modules
         error_code = "`errorcode'"
-        prompt = f"I encountered the following Stata error code: r({error_code}).\nPlease explain what this error code means and suggest potential solutions."
+        prompt = (f"I encountered the following Stata error code: r({error_code})."
+                   f"\nPlease explain what this error code means.")
 
         modules.call_api(prompt, temperature, max_tokens, api_config)
 
@@ -47,7 +48,9 @@ program define explain_error
 
     else {
         // No explicit error code was provided.
+
         syntax , [lines(string)] [previous(integer)] [suggestfix]
+
         if ("$last_error_msg" == "") {
             local error_code = c(rc)
             local error_message = "Stata error code: " + "`error_code'"
@@ -55,6 +58,7 @@ program define explain_error
         else {
             local error_message = "$last_error_msg"
         }
+
         // Determine the context extraction method.
         if ("`previous'" != "") {
             if ("$explain_file" == "") {
@@ -67,15 +71,18 @@ program define explain_error
             import modules
 
             dofile = r"""$explain_file"""
+            suggestfix_flag = r"""`suggestfix'"""
+            error_line_str = r"""$last_error_line"""
+            prev_num_str = r"""`previous'"""
+
             dofile = modules.read_file(dofile)
 
-            prev_num_str = r"""`previous'"""
             try:
                 prev_num = int(prev_num_str)
             except Exception as e:
                 print("Error converting previous parameter: " + str(e))
                 sys.exit(1)
-            error_line_str = r"""$last_error_line"""
+
             if error_line_str.strip() == "":
                 error_line = len(file_lines)
             else:
@@ -85,12 +92,11 @@ program define explain_error
                     error_line = len(file_lines)
             start_line = max(0, error_line - prev_num - 1)
             context_lines = "".join(file_lines[start_line:error_line-1])
-            print("Extracted previous lines (lines {} to {}):".format(start_line+1, error_line-1))
-            print(context_lines)
-            prompt = f"I encountered an error in my Stata code.\nError message:\n{r"""`error_message'"""}\nHere are the {prev_num} lines preceding the error (from {dofile}):\n{context_lines}"
 
+            prompt = f("I encountered an error in my Stata code."
+                      f"\nError message:\n{r"""`error_message'"""}"
+                      f"\nHere are the {prev_num} lines preceding the error:\n{context_lines}")
 
-            suggestfix_flag = r"""`suggestfix'"""
 
             if suggestfix_flag.strip():
                 prompt += "\nPlease also suggest a possible fix for the error."
@@ -129,6 +135,8 @@ program define explain_error
             import modules
 
             dofile = r"""$explain_file"""
+            suggestfix_flag = r"""`suggestfix'"""
+
             dofile = modules.read_file(dofile)
 
             try:
@@ -137,14 +145,16 @@ program define explain_error
             except Exception as e:
                 print("Error converting line numbers: " + str(e))
                 sys.exit(1)
+
             if start_line < 1 or end_line > len(file_lines) or start_line > end_line:
                 print("Invalid line range specified.")
                 sys.exit(1)
+
             extracted_code = "".join(file_lines[start_line-1:end_line])
-            print("Extracted code (lines {}-{}):".format(start_line, end_line))
-            print(extracted_code)
-            prompt = f"I encountered an error in my Stata code.\nError message:\n{r"""`error_message'"""}\nHere is the code from lines {start_line} to {end_line} of {dofile}:\n{extracted_code}"
-            suggestfix_flag = r"""`suggestfix'"""
+
+            prompt = (f"I encountered an error in my Stata code."
+            f"\nError message:\n{r"""`error_message'"""}"
+            f"\nHere is the code from lines {start_line} to {end_line} of {dofile}:\n{extracted_code}")
 
             if suggestfix_flag.strip():
                 prompt += "\nPlease also suggest a possible fix for the error."
@@ -162,7 +172,10 @@ program define explain_error
             python:
             import sys
             import modules
-            prompt = f"I encountered an error in my Stata code.\nError message:\n{r"""`error_message'"""}\nPlease explain what the error means."
+            prompt = (f"I encountered an error in my Stata code.
+                      f"\nError message:\n{r"""`error_message'"""}"
+                      f"\nPlease explain what the error means.")
+
             module.call_api(prompt, temperature, max_tokens, api_config)
             end
         }
