@@ -35,13 +35,6 @@ capture program drop explain
 program define explain
     version 16.0
 
-	
-	run "D:\Collin\explain\query.ado" // hardcoded: remember to remove!
-	run "D:\Collin\explain\set.ado"
-	run "D:\Collin\explain\do.ado"
-    run "D:\Collin\explain\error.ado"
-    run "D:\Collin\explain\code.ado"
-
     // -----------------------------------------------------------
     // 	
     // 	DEFAULTS
