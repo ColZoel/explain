@@ -1,6 +1,6 @@
 import sys
 import aisuite
-from dotenv import load_dotenv
+
 
 def read_file(dofile):  #fixme: retrieve context window size from model and use it as threshold
     try:
@@ -9,12 +9,21 @@ def read_file(dofile):  #fixme: retrieve context window size from model and use 
     except Exception as e:
         print("Error reading do-file: " + str(e))
         sys.exit(1)
-    return file_lines
+    return "".join(file_lines)
 
 
-def call_api(model, prompt, max_tokens, temperature, api_key):
-    client = aisuite.Client()
+def read_config(config_file):
+    try:
+        with open(config_file, "r") as f:
+            config = f.readlines()
+    except Exception as e:
+        print("Error reading config file: " + str(e))
+        sys.exit(1)
+    return config
 
+
+def call_api(api_config, model, prompt, max_tokens, temperature):
+    client = aisuite.Client(api_config)
 
     try:
         response = client.chat.completion.create(engine=model,

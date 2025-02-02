@@ -7,7 +7,7 @@
 	//	  - temperature
 	//	  - max_tokens
 	//	  - max_lines
-	//	  - api endpoint
+	//	  - model
 	//	  - secret containing API key, if necessary
     // ================================================================
 	
@@ -44,9 +44,9 @@ program define explain_set
 		display as text "Max lines set to " "`value'"
 	}
 	
-	else if ("`param'" == "api") {
-		global explain_api "`value'"
-		display as text "API endpoint: " "`value'"
+	else if ("`param'" == "model") {
+		global explain_model "`value'"
+		display as text "Model: " "`value'"
 	}
 	
 	else if ("`param'" == "secret") {
@@ -69,7 +69,7 @@ program define explain_set
 	}
 	
 	else {
-		display as error "Unknown parameter: `param'. Allowed: temperature, max_tokens, max_lines, api, secret, file."
+		display as error "Unknown parameter: `param'. Allowed: temperature, max_tokens, max_lines, model, secret, file."
 		exit 198
 	}
 	exit 0
