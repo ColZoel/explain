@@ -1,0 +1,7 @@
+Package: explain
+Version: 1.0.2
+Title: LLM Assisted Explanation Tool for Stata
+Author: Collin Zoeller
+Maintainer: Collin Zoeller (maintained on GitHub)
+Description: A Stata plugin tool that leverages LLMs to explain errors and code, and suggest improvements
+URL: https://github.com/colzoel/explain
