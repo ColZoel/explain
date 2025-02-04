@@ -48,28 +48,27 @@ program define explain_set
 		global explain_model "`value'"
 		display as text "Model: " "`value'"
 	}
-	
-	else if ("`param'" == "secret") {
-		// Read the secret (API key) from the given file.
-		file open fsecret using "`value'", read text
-		file read fsecret line
-		local secret ""
-		while r(eof)==0 {
-			local secret "`secret'" + "`line'" + " "
-			file read fsecret line
-		}
-		file close fsecret
-		global explain_secret "`secret'"
-		display as text "Secret loaded from: " "`value'"
-	}
+
+    else if ("`param'" == "api_config") {
+        global explain_api_config "`value'"
+        display as text "API Config: " "`value'"
+    }
+
 	
 	else if ("`param'" == "dofile") {
-		global explain_file "`value'"
+		global explain_dofile "`value'"
 		display as text "Do-file set to: " "`value'"
+		di "$explain_file"
 	}
-	
+
+	else if ("`param'" == "python_env") {
+        global python_env "`value'"
+        display as text "Python Environment: " "`value'"
+    }
+
+
 	else {
-		display as error "Unknown parameter: `param'. Allowed: temperature, max_tokens, max_lines, model, secret, file."
+		display as error "Unknown parameter: `param'"
 		exit 198
 	}
 	exit 0

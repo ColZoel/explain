@@ -52,11 +52,11 @@ program define explain_query
 			display as text "| model      | $explain_model "
 
 		}
-		else if ("`param'" == "secret") {
+		else if ("`param'" == "api_config") {
 			display as text "`header'"
 			display as text "`header_row'"
 			display as text "`header'"
-			display as text "| secret      | $explain_secret "
+			display as text "| api config  | $explain_api_config "
 
 		}
 		else if ("`param'" == "file") {
@@ -79,7 +79,7 @@ else {
 	display as text " max_tokens  | $explain_max_tokens		(model specific, usually around 4000)"
 	display as text " max_lines   | $explain_max_lines		(any integer, or . for whole file)"
 	display as text " model       | $explain_model		"
-	display as text " secret      | $explain_secret		"
+	display as text " api config  | $explain_api_config		"
 	display as text " do-file     | $explain_file		"
 	display as text "`header'"
 }

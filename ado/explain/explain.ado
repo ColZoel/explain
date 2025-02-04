@@ -36,10 +36,6 @@ capture program drop explain
 program define explain
     version 17.0
 
-    syntax namelist(min=1 max=3) [using] [, rewrite suggestfix lines(string) previous(numlist)]
-	
-	di "name: `namelist'"
-
 
 
     // ================================================================
@@ -50,18 +46,17 @@ program define explain
 	if ("$explain_max_lines" == "")         global explain_maxlines "."
 	if ("$explain_model" == "")             global explain_model "."
 	if ("$explain_api_config" == "")        global explain_api_config ""
-	if ("$explain_dofile" == "")              global explain_dofile "."
+	if ("$explain_dofile" == "")            global explain_dofile "."
     if ("$python_env" == "")                global python_env ""
 
+    capture{
     if ("$python_env" != "") {
-                quietly set python_exec "`python_env'python.exe"
+                quietly set python_exec "$python_env\python.exe"
+                di in red "Python env set:" "$python_env"
+                di in red "Reset Stata to use this environment."
             }
+    }
 
-    // test model "huggingface:meta-llama/Llama-3.2-1B"
-    global explain_model "huggingface:meta-llama/Llama-3.2-1B"
-
-    // test api config
-    global explain_api_config "D:\Collin\explain\ado\explain\pkg\api_config.txt"
 
 	quietly findfile modules.py
     global modules_path "`r(fn)'"
@@ -72,9 +67,10 @@ program define explain
 
 
     // Determine the mode by the first token.
-    tokenize "`namelist'"
+
+    tokenize `0'
 	local first_token = "`1'"
-    display as text "First token: `first_token'"
+    //display as text "First token: `first_token'"
 
 
     // ================================================================
@@ -123,8 +119,8 @@ program define explain
 	else if "`first_token'" == "set" {
 
         local param = "`2'"
-        local value = "`3'"
-		explain_set "`param'" "`value'"
+		local path = "`3'"
+		explain_set "`param'" "`path'"
  		exit 0
     }
 	
@@ -136,18 +132,16 @@ program define explain
     else if ("`first_token'" == "do") {
         syntax namelist(min=1 max=3) [using/] [, rewrite suggestfix lines(string) previous(numlist)]
         // The command accepts a file name and an optional "rewrite" flag.
-        // test file: "D:\Collin\female_entr\Industry_Betas\Industry_Betas\construct_industry_betas.do"
-
-        global explain_dofile "D:\Collin\female_entr\Industry_Betas\Industry_Betas\construct_industry_betas.do"
 
         if "`using'" == "" {
 
             if ("$explain_dofile" == ".") {
-                display as error "No do-file set and no file specified. Use: 'explain set dofile \path/to/dofile.do\'"
+                display as error "No do-file set and no file specified. Use: 'explain set dofile path/to/dofile.do'"
                 exit 198
             }
 
             local file "$explain_dofile"
+            di "$explain_dofile"
         }
         else {
             local file "`using'"

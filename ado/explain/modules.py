@@ -12,8 +12,24 @@ corpus_prompts = {
 }
 
 
-def init():
+sys_role = {
+    "role": "system",
+    "content": "You are an expert in Stata. You are tasked with making Stata code comprehensible to "
+               "researchers. Respond succintly and clearly to the following prompt."
+}
 
+def build_prompt(prompt):
+    message = [
+        sys_role,
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
+    return message
+
+
+def init():
 
     try:
         subprocess.check_call([sys.executable, "-q","-m", "pip", "install", "aisuite"])
@@ -25,15 +41,14 @@ def init():
 
 
 
-def read_file(dofile):  #fixme: retrieve context window size from model and use it as threshold
-    print(dofile)
+def read_file(dofile):  #fixme: retrieve context window size from model and use it as threshol
     try:
         with open(dofile, "r") as f:
             file_lines = f.readlines()
     except Exception as e:
         print("Error reading do-file: " + str(e))
         sys.exit(1)
-    return "".join(file_lines)
+    return "\n".join(file_lines)
 
 
 def read_config(config_file):
@@ -51,11 +66,12 @@ def call_api(api_config, model, prompt, max_tokens, temperature):
     import aisuite
     client = aisuite.Client(api_config)
 
+    message = build_prompt(prompt)
+    print(f"API MESSaGE:\n {message}\n\n")
+    print(f"temperature {temperature}\n max_tokens: {max_tokens}")
     try:
-        response = client.chat_completions_create.create(engine=model,
-                                                 prompt=prompt,
-                                                 max_tokens=max_tokens,
-                                                 temperature=temperature)
+        response = client.chat.completions.create(model=model,
+                                                 messages=message)
         explanation = response.choices[0].text.strip()
         print(explanation)
     except Exception as e:
@@ -66,6 +82,7 @@ def call_api(api_config, model, prompt, max_tokens, temperature):
 def explain_do(dofile, config_file, model, options, max_tokens, temperature):
 
     file_lines = read_file(dofile)
+    print(dofile)
     config = read_config(config_file)
 
     if options  == "rewrite":
