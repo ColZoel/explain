@@ -63,7 +63,7 @@ program define explain_set
 		display as text "Secret loaded from: " "`value'"
 	}
 	
-	else if ("`param'" == "file") {
+	else if ("`param'" == "dofile") {
 		global explain_file "`value'"
 		display as text "Do-file set to: " "`value'"
 	}

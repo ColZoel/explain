@@ -32,9 +32,13 @@ program define explain_error
             exit 198
         }
 
+        /*
         python:
         import sys
         import modules
+
+        print("python works")
+
         error_code = "`errorcode'"
         prompt = (f"I encountered the following Stata error code: r({error_code})."
                    f"\nPlease explain what this error code means.")
@@ -42,6 +46,7 @@ program define explain_error
         modules.call_api(prompt, temperature, max_tokens, api_config)
 
         end
+        */
         global last_error_msg ""
         exit 0
     }
@@ -106,6 +111,7 @@ program define explain_error
             modules.call_api(prompt, temperature, max_tokens, api_config)
 
             end
+            exit 0
         }
 
         else if ("`lines'" != "") {
@@ -164,6 +170,7 @@ program define explain_error
             modules.call_api(prompt, temperature, max_tokens, api_config)
 
              end
+             exit 0
         }
 
         else {
