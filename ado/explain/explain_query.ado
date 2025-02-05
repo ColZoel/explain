@@ -16,73 +16,73 @@ program define explain_query
 		
 	args value
 
-	local header "--------------------------------------------------------------"
-	local header_row " Parameter   | Current Value  (Possible)"
+	local header "-----------------------------------------------------------------"
+	local header_row " Parameter      |             "
 
-	if ("`value'" != "") {
-	
-		// display individual parameters
 
-		local param = lower("`value'")
-		if ("`param'" == "temperature") {
-			display as text "`header'"
-			display as text "`header_row'"
-			display as text "`header'"
-			display as text " temperature | $explain_temperature 		Any integer (0, 1) "
-
-		}
-		else if ("`param'" == "maxtokens") {
-			display as text "`header'"
-			display as text "`header_row'"
-			display as text "`header'"
-			display as text "| maxtokens  | $explain_max_tokens 		model specific, usually around 4000"
-
-		}
-		else if ("`param'" == "maxlines") {
-			display as text "`header'"
-			display as text "`header_row'"
-			display as text "`header'"
-			display as text "| maxlines   | $explain_max_lines  any integer, or . for whole file "
-			display as text "`header'"
-		}
-		else if ("`param'" == "model") {
-			display as text "`header'"
-			display as text "`header_row'"
-			display as text "`header'"
-			display as text "| model      | $explain_model "
-
-		}
-		else if ("`param'" == "api_config") {
-			display as text "`header'"
-			display as text "`header_row'"
-			display as text "`header'"
-			display as text "| api config  | $explain_api_config "
-
-		}
-		else if ("`param'" == "file") {
-			display as text "`header'"
-			display as text "`header_row'"
-			display as text "`header'"
-			display as text "| file        | $explain_file "
-
-	}
-	else {
-		display as error "Unknown parameter: `param'. Allowed: temperature, max_tokens, max_lines, api, secret, file."
-	}
-}
-else {
 	// Display all parameters.
 	display as text "`header'"
 	display as text "`header_row'"
 	display as text "`header'"
-	display as text " temperature | $explain_temperature		(n in range (0, 1))"
-	display as text " max_tokens  | $explain_max_tokens		(model specific, usually around 4000)"
-	display as text " max_lines   | $explain_max_lines		(any integer, or . for whole file)"
-	display as text " model       | $explain_model		"
-	display as text " api config  | $explain_api_config		"
-	display as text " do-file     | $explain_file		"
-	display as text "`header'"
-}
+
+
+    if ("`value'"== "python_env" | "`value'"== ""){
+	    display as text " python environ | $python_env"
+	}
+
+	if ("`value'"== "dofile" | "`value'"== ""){
+	    display as text " do-file        | $explain_dofile"
+	}
+
+    if ("`value'"== "max_lines" | "`value'"== ""){
+        display as text " max_lines      | $explain_max_lines"
+    }
+    if ( "`value'"== ""){
+        display as text "`header'"
+    }
+
+    if ("`value'"== "api_config" | "`value'"== ""){
+        display as text " api_config     | $explain_api_config"
+    }
+
+    if ("`value'"== "model" | "`value'"== ""){
+        display as text " model          | $explain_model"
+	}
+
+	if ("`value'"== ""){
+	    display as text "`header'"
+	}
+	if ("`value'"== "sys_msg" | "`value'"== ""){
+	    display as text " system message | (view or set in global explain_system_role_msg)"
+	}
+	if ("`value'"== "user_msg" | "`value'"== ""){
+	    display as text " user message   | (view or set in global explain_user_role_msg)"
+	}
+	if ("`value'"== "temperature" | "`value'"== ""){
+	    display as text " temperature    | $explain_temperature"
+	}
+	if ("`value'"== "max_tokens" | "`value'"== ""){
+	    display as text " max_tokens     | $explain_max_tokens"
+	}
+	if ("`value'"== "max_p" | "`value'"== ""){
+	    display as text " max_p          | $explain_max_p"
+	}
+	if ("`value'"== "top_k" | "`value'"== ""){
+	    display as text " top_k          | $explain_top_k"
+	}
+	if ("`value'"== "freq_penalty" | "`value'"== ""){
+	    display as text " freq_penalty   | $explain_frequency_penalty"
+	}
+	if ("`value'"== "pres_penalty" | "`value'"== ""){
+	    display as text " pres_penalty   | $explain_presence_penalty"
+	}
+	if ("`value'"== "stop_sequence" | "`value'"== ""){
+	    display as text " stop_sequence  | $explain_stop_sequence"
+	}
+	if ("`value'"== ""){
+	    display as text "`header'"
+    }
+
 exit 0
 	
 end
