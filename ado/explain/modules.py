@@ -3,20 +3,23 @@ import os
 import subprocess
 
 corpus_prompts = {
-    "do": {"rewrite": "Please rewrite the following Stata do-file for improved optimization and clarity:",
-           "explain": "Please explain what the following Stata do-file achieves:"
+    "do": {"rewrite": "Rewrite the following Stata do-file for improved optimization and clarity:",
+           "explain": "Explain what the following Stata do-file achieves:"
            },
     "code": {"suggestfix": f"",
-             "explain": f"",},
+             "explain": f""},
     "error": {f""}
 }
 
 
 sys_role = {
     "role": "system",
-    "content": "You are an expert in Stata. You are tasked with making Stata code comprehensible to "
-               "researchers. Respond succintly and clearly to the following prompt."
+    "content": "You are an expert in the Stata statistical program. Your task to answer questions about Stata code."
+               "Respond as succinctly and briefly as possible. Prefer to use bullets if appropriate."
+               "Do not lie. Do not make-up information. If you do not know the answer, say so."
+               "You are speaking to your peers. Your response must be professional yet comfortable in tone."
 }
+
 
 def build_prompt(prompt):
     message = [
@@ -40,8 +43,7 @@ def init():
     return
 
 
-
-def read_file(dofile):  #fixme: retrieve context window size from model and use it as threshol
+def read_file(dofile):
     try:
         with open(dofile, "r") as f:
             file_lines = f.readlines()
@@ -65,14 +67,12 @@ def read_config(config_file):
 def call_api(api_config, model, prompt, max_tokens, temperature):
     import aisuite
     client = aisuite.Client(api_config)
-
     message = build_prompt(prompt)
-    print(f"API MESSaGE:\n {message}\n\n")
-    print(f"temperature {temperature}\n max_tokens: {max_tokens}")
+
     try:
         response = client.chat.completions.create(model=model,
                                                  messages=message)
-        explanation = response.choices[0].text.strip()
+        explanation = response.choices[0].message.content
         print(explanation)
     except Exception as e:
         print("Error calling aisuite API: " + str(e))
