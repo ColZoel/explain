@@ -64,49 +64,51 @@ def read_config(config_file):
     return config
 
 
-def call_api(api_config, model, prompt, max_tokens, temperature):
+def call_api(api_config, model, prompt, kwargs):
     import aisuite
     client = aisuite.Client(api_config)
     message = build_prompt(prompt)
 
+    print("kwargs: ", kwargs)
+
     try:
         response = client.chat.completions.create(model=model,
-                                                 messages=message)
+                                                 messages=message,
+                                                  **kwargs)
         explanation = response.choices[0].message.content
-        print(explanation)
+        print("\n", explanation)
     except Exception as e:
         print("Error calling aisuite API: " + str(e))
         sys.exit(1)
 
 
-def explain_do(dofile, config_file, model, options, max_tokens, temperature):
+def explain_do(dofile, config_file, model, options, kwargs):
 
     file_lines = read_file(dofile)
-    print(dofile)
     config = read_config(config_file)
 
     if options  == "rewrite":
         prompt = corpus_prompts["do"]["rewrite"] + "\n" + file_lines
     else:
         prompt = corpus_prompts["do"]["explain"] + "\n" + file_lines
-    call_api(config, model, prompt, max_tokens, temperature)
+    call_api(config, model, prompt, kwargs)
 
 
-def explain_code(code, config_file, model, options, max_tokens, temperature):
+def explain_code(code, config_file, model, options, kwargs):
     config = read_config(config_file)
 
     if options == "suggestfix":
         prompt = corpus_prompts["code"]["suggestfix"] + "\n" + code
     else:
         prompt = corpus_prompts["code"]["explain"] + "\n" + code
-    call_api(config, model, prompt, max_tokens, temperature)
+    call_api(config, model, prompt, kwargs)
 
 
-def explain_error(error, config_file, model, max_tokens, temperature):
+def explain_error(error, config_file, model, kwargs):
 
     config = read_config(config_file)
     prompt = corpus_prompts["error"] + "\n" + error
-    call_api(config, model, prompt, max_tokens, temperature)
+    call_api(config, model, prompt, kwargs)
 
 
 def main(subcommand,
@@ -114,16 +116,33 @@ def main(subcommand,
          model=None,
          config=None,
          options=None,
+         max_p=None,
+         top_k=None,
+         frequency_penalty=None,
+         presence_penalty=None,
+         stop_sequence=None,
          max_tokens=None,
          temperature=None):
 
+    kwargs = {
+        "max_p": max_p,
+        "top_k": top_k,
+        "frequency_penalty": frequency_penalty,
+        "presence_penalty": presence_penalty,
+        "stop_sequence": stop_sequence,
+        "temperature": temperature,
+        "max_tokens": max_tokens
+    }
+
+    kwargs = {k: v for k, v in kwargs.items() if v is not None and v!=""}
+
 
     if subcommand == "do":
-        explain_do(input, config, model, options, max_tokens, temperature)
+        explain_do(input, config, model, options, kwargs)
     elif subcommand == "code":
-        explain_code(input, config, model, options, max_tokens, temperature)
+        explain_code(input, config, model, options, kwargs)
     elif subcommand == "error":
-        explain_error(input, config, model, max_tokens, temperature)
+        explain_error(input, config, model, options, kwargs)
     elif subcommand == "init":
         try:
             import aisuite
@@ -144,11 +163,27 @@ if __name__ == "__main__":
     argparse.add_argument("model", type=str, help="model name", default=None)
     argparse.add_argument("config", type=str, help="path to config file", default=None)
     argparse.add_argument("options", type=str, help="rewrite, explain, suggestfix", default=None)
-    argparse.add_argument("max_tokens", type=int, help="maximum tokens to generate", default=None)
-    argparse.add_argument("temperature", type=float, help="temperature for sampling", default=None)
+    argparse.add_argument("max_tokens", type=str, help="maximum tokens to generate", default=None)
+    argparse.add_argument("temperature", type=str, help="temperature for sampling", default=None)
+    argparse.add_argument("max_p", type=str, help="maximum probability for sampling", default=None)
+    argparse.add_argument("top_k", type=str, help="top k tokens to sample from", default=None)
+    argparse.add_argument("frequency_penalty", type=str, help="frequency penalty", default=None)
+    argparse.add_argument("presence_penalty",  type=str, help="presence penalty", default=None)
+    argparse.add_argument("stop_sequence", type=str, help="stop sequence", default=None)
     args = argparse.parse_args()
 
 
-    main(args.subcommand, args.input, args.model, args.config, args.options, args.max_tokens, args.temperature)
+    main(args.subcommand,
+         args.input,
+         args.model,
+         args.config,
+         args.options,
+         args.max_tokens,
+         args.temperature,
+         args.max_p,
+         args.top_k,
+         args.frequency_penalty,
+         args.presence_penalty
+         )
 
 
