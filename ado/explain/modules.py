@@ -191,10 +191,10 @@ def explain_code(
               f" kwargs: {kwargs}")
 
 
-    if options == "rewrite":
+    if rewrite:
         prompt = corpus_prompts["code"]["rewrite"] + "\n" + code
 
-    elif options == "suggestfix":
+    elif suggestfix:
         prompt = corpus_prompts["code"]["suggestfix"] + "\n" + code
     else:
         prompt = corpus_prompts["code"]["explain"] + "\n" + code
