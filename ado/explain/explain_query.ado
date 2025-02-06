@@ -46,7 +46,7 @@ program define explain_query
     }
 
     if ("`value'"== "model" | "`value'"== ""){
-        display as text " model          | $explain_model"
+        display as text " model*         | $explain_model"
 	}
 
 	if ("`value'"== ""){
@@ -59,7 +59,7 @@ program define explain_query
 	    display as text " user message   | (view or set in global explain_user_role_msg)"
 	}
 	if ("`value'"== "temperature" | "`value'"== ""){
-	    display as text " temperature    | $explain_temperature"
+	    display as text " temperature**  | $explain_temperature"
 	}
 	if ("`value'"== "max_tokens" | "`value'"== ""){
 	    display as text " max_tokens     | $explain_max_tokens"
@@ -82,7 +82,9 @@ program define explain_query
 	if ("`value'"== ""){
 	    display as text "`header'"
     }
-
+    di "* Language models are experimental and may return unexpected results."
+    di "** Be sure to check provider documentation. An error 403 occurs"
+    di "   if the model does not accept that parameter."
 exit 0
 	
 end

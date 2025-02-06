@@ -82,7 +82,8 @@ program define explain
 
     // Determine the mode by the first token.
 
-    tokenize `0'
+    syntax anything [, *]
+    tokenize `anything'
 	local first_token = "`1'"
     //display as text "First token: `first_token'"
 
@@ -142,8 +143,9 @@ program define explain
     // ================================================================
 
     else if ("`first_token'" == "do") {
-        syntax namelist(min=1 max=3) [using/] [, rewrite suggestfix ]
-        // The command accepts a file name and an optional "rewrite" flag.
+        syntax namelist(min=1 max=3) [using/] [, rewrite suggestfix detail verbose]
+
+        local options = "`rewrite' `suggestfix' `detail' `verbose'"
 
         if "`using'" == "" {
 
@@ -160,11 +162,13 @@ program define explain
 
 
         #delimit ;
-        python script $modules_path, args("do"
-        "`file'"
+        python script $modules_path, args(
+        "do"
+        "`input'"
         "$explain_model"
         "$explain_api_config"
-        "`rewrite'"
+        "`file'"
+        "`options'"
         "$explain_max_tokens"
         "$explain_temperature"
         "$explain_max_p"
@@ -185,12 +189,77 @@ program define explain
     //    Usage:
     //       (a) explain code "your code snippet"
     //       (b) explain code, lines(10)         (extracts line 10)
-    //       (c) explain code, lines(10-20) or lines(10,20)
+    //       (c) explain code, lines(10-20)
     //          (extracts that range from the file set previously)
     // ================================================================
     else if ("`first_token'" == "code") {
-    // Accept an optional code snippet and/or a lines() option.
+    di "`2'"
+    syntax anything [using/] [ , rewrite suggestfix detail lines(string) verbose]
 
+    tokenize `anything'
+
+    local snippet = "`2'"
+
+    // Case 1: Code snippet not provided, line ID not provided
+    if ("`snippet'" == "" & "`lines'" == "") {
+        display as error "No code or line numbers provided. Use: 'explain code \"your code snippet\"'"
+        exit 198
+    }
+
+    // Case 2: Code snippet provided, (line ID is irrelevant)
+    else if ("`snippet'" != "") {
+
+        if ("`using'" != "") {
+            display in green "(using is not necessary for code snippets. Ignoring.)"
+            }
+
+    }
+
+    // case 3: Line ID provided
+    else {
+
+         // prioritize using file
+         if ("`using'" != "") {
+            local file = "`using'"
+            }
+
+         else if ("$explain_dofile" != "") {
+            local file = "$explain_dofile"
+            }
+
+         else {
+            display as error "No do-file set."
+            exit 198
+         }
+
+        // validate string ranges from lines
+
+        if (strpos("`lines'", "-") == 0 & missing(real("`lines'"))) {
+            display as error "Invalid line range specified."
+            exit 198
+        }
+    }
+
+    local options = "`rewrite' `suggestfix' `detail' `verbose' lines:`lines'"
+
+    #delimit ;
+    python script $modules_path, args(
+        "code"
+        "`snippet'"
+        "$explain_model"
+        "$explain_api_config"
+        "`file'"
+        "`options'"
+        "$explain_max_tokens"
+        "$explain_temperature"
+        "$explain_max_p"
+        "$explain_top_k"
+        "$explain_frequency_penalty"
+        "$explain_presence_penalty"
+        "$explain_stop_sequence"
+        )
+        ;
+    #delimit cr
     exit 0
     }
 
