@@ -205,7 +205,7 @@ use the `code` subcommand to run `explain` using inputted code as context.
 
 ## Syntax
 ```stata
-explain code "code" [, suggestfix detail  verbose]
+explain code "code" [, rewrite suggestfix detail verbose]
 ```
 
 ## Examples
@@ -214,6 +214,7 @@ explain code "sysuse auto, clear"
 ```
 This will return a concise explanation (usually bulleted) of only the string of code provided. the `detail` option
 can be used to get a more detailed explanation. `suggestfix` can be used to get clean, optimize, rewrite, or debug the code.
+`rewrite` is an extensive revision that will rewrite the line for efficiency and clarity.
 Note that this does not consider the line of code in context of the entire do-file, so debugging is limited mainly to syntax errors.
 
 In some cases, `explain code` and `explain do` are equivalent:
@@ -230,7 +231,7 @@ Use the `error` subcommand to run `explain` on an error message. This is especia
 ## Syntax
 
 ```stata
-explain error [r(#)] [code] [using] [, suggestfix detail capture lines(integer[-integer]) verbose]
+explain error [r(#) code] [using] [, suggestfix detail capture lines(integer[-integer]) verbose]
 ```
 `r(#)` is the error code or message. For example, `r(0)` means the code executed without error, and 
 `r(198)` is a common syntax error.
@@ -322,6 +323,11 @@ This software is licensed under the MIT License. Feel free to use and distribute
 
 ---
 Please, please, please fork this repository and contribute! 
+
+Based on community suggestions here are a few areas that could use some help:
+- A custom LLM model for Stata-specific code (I need a large corpus of Stata code to tune this model)
+- Chat feature within the tool
+- An AI agent to interact with data and code in Stata
 
 # Further Reading
 
