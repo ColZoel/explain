@@ -22,6 +22,7 @@ program define explain_set
 				exit 198
 			} 
 			
+	// STATA
 	if ("`param'" == "python_env") {
         capture{
             if ("`value'" != "") {
@@ -32,17 +33,7 @@ program define explain_set
            }
     }
 
-	else if ("`param'" == "dofile") {
-		global explain_dofile "`value'"
-		display as text "Do-file set to: " "`value'"
-		di "$explain_file"
-	}
-
-    else if ("`param'" == "max_lines") {
-		global explain_max_lines "`value'"
-		display as text "Max lines set to " "`value'"
-	}
-
+    // API
     else if ("`param'" == "api_config") {
         global explain_api_config "`value'"
         display as text "API Config: " "`value'"
@@ -53,6 +44,7 @@ program define explain_set
 		display as text "Model: " "`value'"
 	}
 
+    // MODEL
     else if ("`param'" == "sys_msg") {
         global explain_sys_msg "`value'"
         display as text "System role set: " "`value'"

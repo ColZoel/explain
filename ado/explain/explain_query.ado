@@ -30,13 +30,6 @@ program define explain_query
 	    display as text " python environ | $python_env"
 	}
 
-	if ("`value'"== "dofile" | "`value'"== ""){
-	    display as text " do-file        | $explain_dofile"
-	}
-
-    if ("`value'"== "max_lines" | "`value'"== ""){
-        display as text " max_lines      | $explain_max_lines"
-    }
     if ( "`value'"== ""){
         display as text "`header'"
     }
