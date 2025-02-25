@@ -27,7 +27,7 @@ program define explain_query
 
 
     if ("`value'"== "python_env" | "`value'"== ""){
-	    display as text " python environ | $python_env"
+	    display as text " python environ | $explain_python_env"
 	}
 
     if ( "`value'"== ""){

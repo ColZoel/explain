@@ -15,19 +15,15 @@ capture program drop explain_set
 program define explain_set
 	
 	args param value
-	
-	
-	if ("`value'" == "" & "`param'" != "reset") {
-				display as error "Missing value for `param'. See ' explain query '. 'set reset ' to reset all parameters."
-				exit 198
-			} 
+
 			
 	// STATA
 	if ("`param'" == "python_env") {
-        capture{
+        capture noisily{
             if ("`value'" != "") {
-                    quietly set python_exec "$python_env\python.exe"
-                    di in red "Python env set:" "$python_env"
+                    global explain_python_env "`value'"
+                    quietly set python_exec "$explain_python_env\python.exe"
+                    di in red "Python env set:" "$explain_python_env"
                     di in red "Reset Stata to use this environment."
                 }
            }
@@ -107,7 +103,7 @@ program define explain_set
         global explain_model ""
         global explain_api_config ""
         global explain_dofile ""
-        display as text "All parameters reset. to missing. "
+        display as text "All parameters reset to missing. "
     }
 
 
