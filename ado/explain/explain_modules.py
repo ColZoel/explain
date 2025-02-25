@@ -34,40 +34,18 @@ sys_role = {
                "Do not lie. Do not make-up information. If you do not know the answer, say so."
                "You are speaking to your peers. Your response must be professional yet comfortable in tone."
     },
-    "detail": {
-            "role": "system",
-            "content": "You are an expert in the Stata statistical program. "
-                       "Your task is to answer questions about Stata code."
-                       "Respond succinctly yet detailed."
-                       "Carefully walk through any steps."
-                       "Do not lie. Do not make-up information. "
-                       "If you do not know the answer, say so."
-                       "You are speaking to your peers. "
-                       "Your response must be professional yet comfortable in tone."
-    },
 }
 
 
-def build_prompt(detail, prompt):
+def build_prompt(prompt):
 
-    if detail:
-        message = [
-            sys_role['detail'],
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-        return message
-
-    else:
-        message = [
-            sys_role['short'],
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
+    message = [
+        sys_role['short'],
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
 
     return message
 
@@ -76,6 +54,8 @@ def linenums(options):
     i = options.find("lines:")
     if i != -1:
         lines = options[i+6:]
+        if lines == "":
+            lines = None
     else:
         lines = None
     return lines
@@ -93,12 +73,12 @@ def init():
 
 
 def read_file(dofile, lines=None):
-    print(f"Reading file: {dofile}")
-    if dofile is not None:
+    # print(f"Reading file: {dofile}")
+    if dofile is not None and dofile != "":
         try:
             with open(dofile, "r") as f:
                 file_lines = f.readlines()
-                print(file_lines)
+                # print(file_lines)
         except Exception as e:
             print("Error reading do-file: " + str(e))
             sys.exit(1)
@@ -111,10 +91,10 @@ def read_file(dofile, lines=None):
 
                 file_lines = file_lines[start-1:end]
                 file_lines = [f.strip('\n') for f in file_lines]  # Stata is 1-indexed, adjust to 0-indexed
+                return "\n".join(file_lines)
             else:
                 file_lines = file_lines[int(lines)-1]  # line number as written in Stata
-
-        return "\n".join(file_lines)
+                return file_lines
     else:
         return ""
 
@@ -134,10 +114,10 @@ def read_config(config_file):
     return config
 
 
-def call_api(api_config, model, prompt, detail, verbose, kwargs):
+def call_api(api_config, model, prompt, verbose, kwargs):
     import aisuite
     client = aisuite.Client(api_config)
-    message = build_prompt(detail, prompt)
+    message = build_prompt(prompt)
 
     if verbose:
         print(f"\nmodel: {model}\n\n")
@@ -162,15 +142,11 @@ def call_api(api_config, model, prompt, detail, verbose, kwargs):
 
 
 def explain_(subcmd, input, config, model, dofile, opts, kwargs):
+
     configx = read_config(config)
-
     dofx = read_file(dofile, opts['lines'])
-
-
-
-
-
     if opts["verbose"]:
+        options  = [k for k,v in opts.items() if v]
         print(f" subcommand: {subcmd},\n"
               f" input: {input},\n"
               f" dofile path: {dofile},\n"
@@ -178,7 +154,7 @@ def explain_(subcmd, input, config, model, dofile, opts, kwargs):
               f" lines: {opts['lines']},\n"
               f" config: {config},\n"
               f" model: {model},\n"
-              f" options: {[o for o in opts]},\n"
+              f" options: {options},\n"
               f" kwargs: {kwargs}")
 
     for i in ["rewrite", "suggestfix"]:
@@ -188,7 +164,7 @@ def explain_(subcmd, input, config, model, dofile, opts, kwargs):
         else:
             prompt = f"{corpus_prompts[subcmd]['explain']}\n{input} {dofx}"
 
-    call_api(configx, model, prompt, opts['detail'], opts['verbose'], kwargs)
+    call_api(configx, model, prompt, opts['verbose'], kwargs)
     return
 
 
@@ -226,7 +202,6 @@ def main(subcommand,
         "rewrite":    True if "rewrite" in options else False,
         "explain":    True if "explain" in options else False,
         "suggestfix": True if "suggestfix" in options else False,
-        "detail":     True if "detail" in options else False,
         "capture":    True if "capture" in options else False,
         "verbose":    True if "verbose" in options else False,
         "lines":      lines if "lines" in options else None
