@@ -32,8 +32,6 @@ capture program drop explain
 program define explain
     version 18.0
 
-
-
     // ================================================================
     // 	                    INITIALIZATION
     // 	                       DEFAULTS
@@ -75,7 +73,7 @@ program define explain
 
     // Determine the mode by the first token.
 
-    syntax anything [, *]
+    syntax anything [using] [, *]
     tokenize `anything'
 	local subcmd = "`1'"
 
@@ -123,11 +121,11 @@ program define explain
 	
     // ================================================================
     // 3. DO MODE
-    //    Usage: explain do using "path/to/do-file.do" [, rewrite suggestfix detail lines(integer[-integer]) verbose]
+    //    Usage: explain do using "path/to/do-file.do" [, rewrite suggestfix lines(integer[-integer]) verbose]
     // ================================================================
 
     else if ("`subcmd'" == "do") {
-        syntax namelist(min=1 max=1) using/ [, rewrite suggestfix detail lines(string) verbose]
+        syntax anything using/ [, rewrite suggestfix lines(string) verbose]
 
         if "`lines'" != "" {
 
@@ -147,16 +145,14 @@ program define explain
     //       (a) explain code "your code snippet"
     // ================================================================
     else if ("`subcmd'" == "code") {
-
-//         di "`2'"
-        syntax anything [ , rewrite suggestfix detail verbose]
+        syntax anything [ , rewrite suggestfix verbose]
 
         tokenize `anything'
 
-        local snippet = "`2'"
-    
+        local input = "`2'"
+        di "snippet: `input'"
         // Code snippet not provided
-        if ("`snippet'" == "") {
+        if ("`input'" == "") {
             display as error "No code provided. Use: 'explain code \"your code snippet\"'"
             exit 198
         }
@@ -171,49 +167,49 @@ program define explain
     //    (a) explain error r(#)
     //         - Explains that specific error code generally.
     //
-    //    (b) explain error "r(#)" ["snippet"] [using] [,  suggestfix detail capture lines(integer[-integer]) verbose]
+    //    (b) explain error "r(#)" ["snippet"] [using] [,  suggestfix capture lines(integer[-integer]) verbose]
     //          - If error code provided, it explains that specific error code
     //
     // ================================================================
 
     else if ("`subcmd'" == "error") {
 
-        syntax anything [using/] [, suggestfix detail capture lines(string) verbose]
+        syntax anything [using/] [, suggestfix capture lines(string) verbose]
 
         local errorcode = _rc
 
-        python:
-        from sfi import Macro
-
-        def read_file(dofile, lines=None):
-            print(f"Reading file: {dofile}")
-            if dofile is not None:
-                try:
-                    with open(dofile, "r") as f:
-                        file_lines = f.readlines()
-                        print(file_lines)
-                except Exception as e:
-                    print("Error reading do-file: " + str(e))
-                    sys.exit(1)
-
-                if lines is not None:
-                    if "-" in lines:
-                        lines = lines.split("-")
-                        start = int(lines[0])
-                        end = int(lines[1])
-
-                        file_lines = file_lines[start-1:end]
-                        file_lines = [f.strip('\n') for f in file_lines]  # Stata is 1-indexed, adjust to 0-indexed
-                    else:
-                        file_lines = file_lines[int(lines)-1]  # line number as written in Stata
-
-                    linetext = "\n".join(file_lines)
-
-                Macro.setLocal("linetext", "linetext")
-            else:
-                Macro.setLocal("linetext", "")
-
-        end
+//      python:
+//      from sfi import Macro
+//
+//       def read_file(dofile, lines=None):
+//           print(f"Reading file: {dofile}")
+//           if dofile is not None:
+//               try:
+//                   with open(dofile, "r") as f:
+//                       file_lines = f.readlines()
+//                       print(file_lines)
+//               except Exception as e:
+//                   print("Error reading do-file: " + str(e))
+//                   sys.exit(1)
+//
+//               if lines is not None:
+//                   if "-" in lines:
+//                       lines = lines.split("-")
+//                       start = int(lines[0])
+//                       end = int(lines[1])
+//
+//                       file_lines = file_lines[start-1:end]
+//                       file_lines = [f.strip('\n') for f in file_lines]  # Stata is 1-indexed, adjust to 0-indexed
+//                   else:
+//                       file_lines = file_lines[int(lines)-1]  # line number as written in Stata
+//
+//                   linetext = "\n".join(file_lines)
+//
+//               Macro.setLocal("linetext", "linetext")
+//           else:
+//               Macro.setLocal("linetext", "")
+//
+//       end
 
 
         tokenize `anything'
@@ -292,7 +288,7 @@ program define explain
 //    RUN PYTHON SCRIPT
 // ================================================================
 
-   local options = "`rewrite' `suggestfix' `capture' `detail' `verbose' lines:`lines'"
+   local options = "`rewrite' `suggestfix' `capture' `verbose' lines:`lines'"
 
    #delimit ;
      python script $modules_path, args(
@@ -302,10 +298,10 @@ program define explain
     "$explain_api_config"
     "`using'"
     "`options'"
-    "$explain_max_tokens"
-    "$explain_temperature"
     "$explain_max_p"
     "$explain_top_k"
+    "$explain_max_tokens"
+    "$explain_temperature"
     "$explain_frequency_penalty"
     "$explain_presence_penalty"
     "$explain_stop_sequence"
