@@ -178,48 +178,15 @@ program define explain
 
         local errorcode = _rc
 
-//      python:
-//      from sfi import Macro
-//
-//       def read_file(dofile, lines=None):
-//           print(f"Reading file: {dofile}")
-//           if dofile is not None:
-//               try:
-//                   with open(dofile, "r") as f:
-//                       file_lines = f.readlines()
-//                       print(file_lines)
-//               except Exception as e:
-//                   print("Error reading do-file: " + str(e))
-//                   sys.exit(1)
-//
-//               if lines is not None:
-//                   if "-" in lines:
-//                       lines = lines.split("-")
-//                       start = int(lines[0])
-//                       end = int(lines[1])
-//
-//                       file_lines = file_lines[start-1:end]
-//                       file_lines = [f.strip('\n') for f in file_lines]  # Stata is 1-indexed, adjust to 0-indexed
-//                   else:
-//                       file_lines = file_lines[int(lines)-1]  # line number as written in Stata
-//
-//                   linetext = "\n".join(file_lines)
-//
-//               Macro.setLocal("linetext", "linetext")
-//           else:
-//               Macro.setLocal("linetext", "")
-//
-//       end
-
 
         tokenize `anything'
         // input can be either code or error code
         local input = "`2'"
-
+        di "input: `input'"
         if ("`input'" == "" & "`using'" == "") {
             display as error "No error code or code snippet provided. Use: 'explain error r(#)' or 'explain error \"your code snippet\"'"
+            exit 198
         }
-
 
         // Error code
         if (substr("`input'",1,2)=="r(" & substr("`input'",-1,1)==")") {
@@ -234,8 +201,9 @@ program define explain
             if "`capture'" != "" & "`using'" == ""{
                 display as error "Nothing to capture."
                 }
-
+            local input = "error: `errorcode'"
             }
+
 
 
         // Code snippet
@@ -251,24 +219,88 @@ program define explain
                 capture noisily `input'
                 local errorcode = _rc
 
+                local input = "error: `errorcode' code: `input'"
             }
         }
 
 
         // Read do-file (or lines) and capture the error
         else if "`using'" != "" {
-            python: read_file("`using'", "`lines'")
-            local using = "`using'"
 
-            if "`capture'" != "" {
-                capture noisily `linetext'
-                local errorcode = _rc
+            local first_line = .
+            local last_line = .
+
+            if "`lines'" !=""{
+                local dash = strpos("`lines'", "-")
+                if `dash' > 0 & `dash' !="" {
+                    // If there is a hyphen, extract start and end numbers
+                    local first_line = substr("`lines'", 1, `dash' - 1)
+                    local last_line = substr("`lines'", `dash' + 1, .)
+                }
+                else {
+                    // Single line case
+                    local first_line = "`lines'"
+                    local last_line = "`lines'"
+                }
+
+
+                // Convert strings to numbers
+                local first_line = real("`first_line'")
+                local last_line = real("`last_line'")
+
+                if missing(`first_line') | missing(`last_line') {
+                    di as error "Invalid line numbers."
+                    exit
+                }
+
+                // Ensure correct ordering
+                if `first_line' > `last_line' {
+                    di as error "Invalid range: First number must be smaller or equal to the second."
+                    exit
+                }
             }
+
+            // Open and read file
+            file open myfile using "`using'", read
+            file read myfile line
+            local i = 1
+
+            local extracted_lines ""  // Initialize empty macro
+
+            // Loop through lines and store only those in the range
+            while r(eof) == 0 {
+                if "`lines'" == "" | (`i' >= `first_line' & `i' <= `last_line') {
+                    if "`extracted_lines'" == "" {
+                        local extracted_lines "`line'"
+                    }
+                    else {
+                        local extracted_lines "`extracted_lines' \\n `line'"
+                    }
+                    if "`capture'" != "" {
+                        capture noisily {
+                        qui: `line'
+                        }
+                        if _rc != 0 {
+                            local errorcode = _rc
+                            break
+                        }
+                    }
+
+                }
+                local ++i
+                file read myfile line
+            }
+
+            file close myfile
+
+        local input = "error: r(`errorcode') \\n do-file: `extracted_lines'"
         }
-        else:
+
+
+        else{
             display as error "No error code or code snippet provided. Use: 'explain error r(#)' or 'explain error \"your code snippet\"'"
             exit 198
-    local input = "`errorcode' `input'"
+            }
     }
 
 
