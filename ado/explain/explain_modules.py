@@ -21,8 +21,8 @@ corpus_prompts = {
     "error": {"suggestfix": "Consider the following error message, and relevant code. What is the error? "
                             "How do I fix it?"
                             "Return any corrections in the form of 'current line -> corrected line'.",
-              "explain": "Explain what the following stata error code or message means in general. The error code "
-                         "is of the format r(###). "}
+              "explain": "Explain what the following stata error code or message means. If code is provided, "
+                         "describe the error in context of the code."}
 }
 
 
