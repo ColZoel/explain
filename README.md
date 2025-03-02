@@ -1,5 +1,7 @@
 # Explain
 
+*Note: This is an initial and experimental release. See the "Contributing" section below.*
+
 ---
 **Explain** is a stateful, LLM‐assisted tool for Stata that helps you diagnose errors, understand code snippets, 
 and even optimize entire do‑files by leveraging a large language model (LLM) of the user's choice. Built
