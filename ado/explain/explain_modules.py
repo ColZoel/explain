@@ -2,16 +2,15 @@ import sys
 import os
 import subprocess
 import json
-from builtins import print
 
 
 corpus_prompts = {
     "do": {"rewrite": "Rewrite the following Stata do-file for improved optimization and clarity:",
-           "suggestfix":"Consider any lines in the following do-file that may result in an error. "
-                        "Check that the syntax is correct."
-                        "Return any corrections in the form of 'current line -> corrected line'."
-                        "If there are no errors, return 'No errors found'."
-                        "Do-file:",
+           "suggestfix": "Consider any lines in the following do-file that may result in an error. "
+                         "Check that the syntax is correct."
+                         "Return any corrections in the form of 'current line -> corrected line'."
+                         "If there are no errors, return 'No errors found'."
+                         "Do-file:",
            "explain": "Explain how the following do-file works:"
            },
     "code": {"rewrite": f"Rewrite the following Stata code for improved optimization and clarity:",
@@ -28,12 +27,12 @@ corpus_prompts = {
 
 sys_role = {
     "short": {
-    "role": "system",
-    "content": "You are an expert in the Stata statistical program. Your task is to answer questions about Stata code."
-               "Respond as succinctly and briefly as possible. Prefer to use bullets if appropriate."
-               "Do not lie. Do not make-up information. If you do not know the answer, say so."
-               "You are speaking to your peers. Your response must be professional yet comfortable in tone."
-    },
+     "role": "system",
+     "content": "You are an expert in the Stata statistical program. Your task is to answer questions about Stata code."
+                "Respond as succinctly and briefly as possible. Prefer to use bullets if appropriate."
+                "Do not lie. Do not make-up information. If you do not know the answer, say so."
+                "You are speaking to your peers. Your response must be professional yet comfortable in tone."
+    }
 }
 
 
@@ -131,7 +130,7 @@ def call_api(api_config, model, prompt, verbose, kwargs):
 
     try:
         response = client.chat.completions.create(model=model,
-                                                 messages=message,
+                                                  messages=message,
                                                   **kwargs)
         explanation = response.choices[0].message.content
         print("\n", explanation)
@@ -141,14 +140,14 @@ def call_api(api_config, model, prompt, verbose, kwargs):
     return
 
 
-def explain_(subcmd, input, config, model, dofile, opts, kwargs):
+def explain_(subcmd, usr_input, config, model, dofile, opts, kwargs):
 
     configx = read_config(config)
     dofx = read_file(dofile, opts['lines'])
     if opts["verbose"]:
         options  = [k for k,v in opts.items() if v]
         print(f" subcommand: {subcmd},\n"
-              f" input: {input},\n"
+              f" input: {usr_input},\n"
               f" dofile path: {dofile},\n"
               f" dofile content: {dofx},\n"
               f" lines: {opts['lines']},\n"
@@ -159,10 +158,10 @@ def explain_(subcmd, input, config, model, dofile, opts, kwargs):
 
     for i in ["rewrite", "suggestfix"]:
         if opts[i]:
-            prompt = f"{corpus_prompts[subcmd][i]}\n{input} {dofx}"
+            prompt = f"{corpus_prompts[subcmd][i]}\n{usr_input} {dofx}"
             break
         else:
-            prompt = f"{corpus_prompts[subcmd]['explain']}\n{input} {dofx}"
+            prompt = f"{corpus_prompts[subcmd]['explain']}\n{usr_input} {dofx}"
 
     call_api(configx, model, prompt, opts['verbose'], kwargs)
     return
@@ -170,7 +169,7 @@ def explain_(subcmd, input, config, model, dofile, opts, kwargs):
 
 # ####### MAIN FUNCTION ########
 def main(subcommand,
-         input=None,
+         usr_input=None,
          model=None,
          config=None,
          dofile=None,
@@ -208,7 +207,7 @@ def main(subcommand,
     }
 
     if subcommand in ["do", "code", "error"]:
-        explain_(subcommand, input, config, model, dofile, opts, kwargs)
+        explain_(subcommand, usr_input, config, model, dofile, opts, kwargs)
 
     elif subcommand == "init":
         try:
@@ -228,7 +227,7 @@ if __name__ == "__main__":
     import argparse
     argparse = argparse.ArgumentParser()
     argparse.add_argument("subcommand",         type=str, help="do, code, error, or init")
-    argparse.add_argument("input",              type=str, default=None)
+    argparse.add_argument("usr_input",              type=str, default=None)
     argparse.add_argument("model",              type=str,  default=None)
     argparse.add_argument("config",             type=str, default=None)
     argparse.add_argument("dofile",             type=str, default=None)
@@ -243,7 +242,7 @@ if __name__ == "__main__":
     args = argparse.parse_args()
 
     main(args.subcommand,
-         args.input,
+         args.usr_input,
          args.model,
          args.config,
          args.dofile,
