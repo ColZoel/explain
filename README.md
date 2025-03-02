@@ -1,3 +1,5 @@
+![Stata](https://img.shields.io/badge/stata-16+-blue)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
 # Explain
 
 *Note: This is an initial and experimental release. See the "Contributing" section below.*
